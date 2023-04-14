@@ -1,0 +1,34 @@
+const jwt = require('jsonwebtoken');
+
+// Create and send token and save in the cookie
+
+const sendToken = (userWithVacationDays, statusCode, res) => {
+	// Define the getJwtToken function on the userWithVacationDays object
+	userWithVacationDays.getJwtToken = function () {
+		const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+			expiresIn: process.env.JWT_EXPIRES_TIME,
+		});
+		return token;
+	};
+
+	// Create json web token
+	const token = userWithVacationDays.getJwtToken();
+
+	// Options for cookie
+	const options = {
+		expiresIn: new Date(
+			Date.now() + process.env.COOKIE_EXPIRES_TIME * 24 * 60 * 60 * 1000
+		),
+		httpOnly: true,
+	};
+
+	// Send the token and the user object with the remaining vacation days
+	res.status(statusCode).cookie('token', token, options).json({
+		success: true,
+		token,
+		user: userWithVacationDays,
+		message: 'Logged in successfully!',
+	});
+};
+
+module.exports = sendToken;
